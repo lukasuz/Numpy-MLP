@@ -19,7 +19,7 @@ def binarize_labels(y, label):
 
     return y_new
 
-def save_plot(values, labels, x_axis, y_axis, title):
+def save_plot(values, labels, x_axis, y_axis, title, save=True):
     fig = plt.figure()
     for i in range(len(values)):
         plt.plot(values[i], label=labels[i])
@@ -27,7 +27,10 @@ def save_plot(values, labels, x_axis, y_axis, title):
     plt.ylabel(y_axis)
     plt.legend()
     plt.title(title)
-    plt.savefig("./{0}.png".format(title))
+    if save:
+        plt.savefig("./{0}.png".format(title))
+    else:
+        plt.show()
     plt.close()
 
 class Dense_Neural_Network():
@@ -37,6 +40,7 @@ class Dense_Neural_Network():
         self.rnd_seed = rnd_seed
         self.architecture = architecture
         self.num_layers = len(architecture)
+        self.e = 1e-8
 
         if loss == "binary_cross_entropy":
             self.loss = self.binary_cross_entropy_loss
@@ -135,10 +139,10 @@ class Dense_Neural_Network():
         m = Y_hat.shape[0]
 
         if forward:
-            return (-1/m) * (np.sum(np.log(Y_hat) * Y) + 
-                        np.sum(np.log(1 - Y_hat) * (1 - Y))) 
+            return (-1/m) * (np.sum(np.log(Y_hat + self.e) * Y) + 
+                        np.sum(np.log(1 - Y_hat + self.e) * (1 - Y))) 
         else:
-            return - (np.divide(Y, Y_hat) - np.divide(1 - Y, 1 - Y_hat))
+            return - (np.divide(Y, Y_hat + self.e) - np.divide(1 - Y, 1 - Y_hat + self.e))
 
     def softmax_cross_entropy_loss(self, Y, Y_hat, forward=True):
         m = Y_hat.shape[0]
@@ -260,10 +264,13 @@ if __name__ == "__main__":
     Y_train_one_hot = one_hot_encode_labels(y_train.T)
     Y_test_one_hot = one_hot_encode_labels(y_test.T)
 
+    # Traning params
     batch_size = 10000
-    epochs = 3
-    verbose = 0
+    epochs = 500
+    verbose = 1
+    save = False
 
+    # Params for plotting
     plot_labels = ["Train", "Validation"]
     x_axis = "Step (batch-wise)"
 
@@ -275,8 +282,8 @@ if __name__ == "__main__":
     SLP = Dense_Neural_Network(architecture_task_1, learning_rate=0.09)
     train_losses, val_losses, train_accs, val_accs = SLP.train(X_train, y_train_bin, epochs, batch_size, verbose=verbose)
     test_loss, test_acc = SLP.validate(X_test, y_test_bin)
-    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task 1")
-    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task 1")
+    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task 1", save)
+    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task 1", save)
     print("Final loss: {0:f} and accuracy: {1:f}\n\n".format(test_loss, test_acc))
 
     ### TASK 2, binary MLP
@@ -288,8 +295,8 @@ if __name__ == "__main__":
     MLP = Dense_Neural_Network(architecture_task_2, learning_rate=0.09)
     train_losses, val_losses, train_accs, val_accs = MLP.train(X_train, y_train_bin, epochs, batch_size, verbose=verbose)
     test_loss, test_acc = MLP.validate(X_test, y_test_bin)
-    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task 2")
-    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task 2")
+    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task 2", save)
+    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task 2", save)
     print("Final loss: {0:f} and accuracy: {1:f}\n\n".format(test_loss.T, test_acc))
 
     ### TASK 2 optional, do binary classification for all numbers
@@ -313,8 +320,8 @@ if __name__ == "__main__":
     multi_MLP = Dense_Neural_Network(architecture_task_3, loss="softmax_cross_entropy", learning_rate=0.9)
     train_losses, val_losses, train_accs, val_accs = multi_MLP.train(X_train, Y_train_one_hot, epochs, batch_size, verbose=verbose)
     test_loss, test_acc = multi_MLP.validate(X_test, Y_test_one_hot)
-    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task 3")
-    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task 3")
+    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task 3", save)
+    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task 3", save)
     print("Final loss: {0:f} and accuracy: {1:f}\n".format(test_loss, test_acc))
 
     ### Extra Task, deeper multiclass MLP
@@ -327,6 +334,6 @@ if __name__ == "__main__":
     multi_MLP = Dense_Neural_Network(architecture_extra, loss="softmax_cross_entropy", learning_rate=0.9)
     train_losses, val_losses, train_accs, val_accs = multi_MLP.train(X_train, Y_train_one_hot, epochs, batch_size, verbose=verbose)
     test_loss, test_acc = multi_MLP.validate(X_test, Y_test_one_hot)
-    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task Extra")
-    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task Extra")
+    save_plot([train_losses, val_losses], plot_labels, x_axis, "Loss", "Loss Task Extra", save)
+    save_plot([train_accs, val_accs], plot_labels, x_axis, "Accuracy", "Accuracy Task Extra". save)
     print("Final loss: {0:f} and accuracy: {1:f}\n".format(test_loss, test_acc))
